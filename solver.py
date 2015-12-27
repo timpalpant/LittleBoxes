@@ -3,7 +3,7 @@ import itertools
 import logging
 import sys
 
-from data.cluedb import ClueDB
+from cluedb import ClueDB
 from xword import Crossword
 
 def max_fill(x, possibilities):

@@ -1,3 +1,2 @@
-crossword==0.1.2
 puzpy==0.2.1
 wheel==0.24.0

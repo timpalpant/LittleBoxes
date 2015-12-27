@@ -1,7 +1,7 @@
 import logging
 import puz
 
-from data.cluedb import Clue
+from cluedb import Clue
 
 class InvalidCrosswordException(Exception):
     pass
