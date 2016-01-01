@@ -3,32 +3,137 @@ Created on Dec 27, 2015
 
 @author: justinpalpant
 '''
-import logging, collections
+import logging, time, collections
+
+class Dictionary:
+    '''Stores a dictionary of words as a dictionary of length-binned Tries
     
-class Trie:
+    Requires moderate memory usage, but provides good speed for:
+        Iterating over all words (equal to a list)
+        Finding all words of a certain length (equal to length-binned list)
+        Finding all words matching a certain pattern (faster than list)
+        Finding all words of length matching pattern (MUCH faster than list)
     '''
-    Stores a dictionary of words in order to provide efficient pattern matching
-    with a small memory footprint.
     
-    Reference: https://en.wikipedia.org/wiki/Trie
-    '''    
-    def __init__(self):
-        self.root = Node('', None)
-        self.size = 0
-    
+    def __init__(self, fast=False):
+        self.fast = fast
+        self.binned_tries = {}
+        self.logger = logging.getLogger('Dictionary.logger')
+        if self.fast: self.logger.debug('Created a FAST Dictionary')
+
+        
     @classmethod   
-    def load(cls, filename):
+    def load(cls, filename, fast=False):
         '''Load a line-delineated text file'''
-        dictionary = cls()
+        start = time.time()
+        dictionary = cls(fast=fast)
         
         with open(filename) as dictfile:
             for line in dictfile:
-                dictionary.add(line.rstrip('\n\r'))
+                dictionary.add(line)
+                
+        dictionary.logger.debug('Loaded %d words into %d nodes in %0.3f seconds', 
+                dictionary.size, dictionary.nodes, time.time()-start)
         
         return dictionary
+    
+    @property
+    def nodes(self):
+        return sum(t.node_count for t in self.binned_tries.values())
+    
+    @property
+    def size(self):
+        return sum(t.size for t in self.binned_tries.values())
 
+    @classmethod
+    def _normalize_word(cls, word):
+        return word.rstrip('\n\r').upper()
+    
     def __iter__(self):
-        return self.get_words()
+        return self.get_words().__iter__()
+    
+    def add(self, word):
+        '''Add a word to the correct Trie, or create the trie if none exists'''
+        word = Dictionary._normalize_word(word)
+        
+        try:
+            self.binned_tries[len(word)].add(word)
+        except KeyError:
+            self.binned_tries[len(word)] = Trie(fast=self.fast)
+            self.binned_tries[len(word)].add(Dictionary._normalize_word(word))
+
+    
+    def get_words(self, **kwargs):
+        '''Returns all words in the dictionary matching pattern and length
+        
+        Inputs:
+            None required, necessarily
+        Keyword Arguments:
+            length: an integer specifying how long the word should be.  If not
+                specified, any length is allowed
+            pattern: a dict mapping integers to letters, where the integer is
+                the location of the letter in the string.  If not given, returns 
+                all words of length
+            e.g. 
+                pattern={0:'c', 3:'q', 4:'u'} would match 'cumquat' 
+                and any other words following c__qu*
+        Outputs:
+            A generator that iterates over all strings by length and then in
+            lexical order
+        '''
+        p = kwargs.get('pattern', {})
+        length = kwargs.get('length', 0)
+        result = []
+        
+        #lets us skip short words if pattern specifies that they be long
+        if p:
+            min_length = max(p)
+        else:
+            min_length = 0
+
+        if length is not 0 and length in self.binned_tries:
+            result.extend(self.binned_tries[length].get_words(pattern=p))
+
+        elif length is 0:
+            for l,trie in self.binned_tries.items():
+                if l >= min_length:
+                    result.extend(trie.get_words(pattern=p))
+
+
+        return result
+            
+        
+    
+    def is_word(self, word):
+        word = Dictionary._normalize_word(word)
+        try:
+            result = self.binned_tries[len(word)].is_word(word)
+        except KeyError:
+            return False
+        
+        return result
+    
+class Trie:
+    '''
+    Stores a dictionary of words in order to provide efficient pattern matching.
+    
+    Tries can store arbitrary text, and provide pattern matching efficiently.  
+    In order to provide length-based lookup efficiently, see the Dictionary 
+    class above, which bins words by length.  While this this requires slightly 
+    more memory, the increase in lookup time for words by length is substantial 
+    because it removes the need for post-processing of the Trie result.
+    
+    Reference: https://en.wikipedia.org/wiki/Trie
+    '''    
+    def __init__(self, fast=False):
+        self.root = Node()
+        self.fast = fast
+        self.wordslist = []
+        self.list_is_sorted = True
+        self.size = 0
+        self.node_count = 1
+        self.logger = logging.getLogger('Trie.logger')
+        if self.fast: self.logger.debug('Created a FAST Trie')
 
     def is_word(self, word):
         '''Checks for the existence of word in the trie
@@ -39,115 +144,129 @@ class Trie:
             A boolean indicating whether or not that word is found in the trie
         '''
         node = self.root
-        logging.debug('Looking for '+self._normalize_word(word))
         
-        for char in self._normalize_word(word):
+        for char in word:
             try:
                 node = node.children[char]
             except KeyError:
-                logging.debug(char+' is not found as a child of '+str(node))
+                self.logger.debug(str(node)+' word status: '+str(False))
                 return False
-            else:
-                logging.debug(char+' is found in the trie')
 
-        logging.debug(str(node)+' word status: '+str(node.is_word))
-        return node.is_word
-            
+        self.logger.debug(str(node)+' word status: '+str(bool(node.word)))
+        return bool(node.word)
     
-    def get_words(self, **kwargs):
-        '''Returns all words matching pattern and length in the dictionary
+    def __iter__(self):
+        return self.get_words().__iter__()
+            
+   
+    def get_words(self, pattern={}):
+        '''Returns all words matching pattern in the dictionary using inorder 
+        traversal of the Trie
         
         Inputs:
             None required, necessarily
         Keyword Arguments:
-            start_node: used for recursion.  If None, defaults to the Trie root
-            length: specifies the length of all words to be returned.  If not 
-                specified, returns all words regardless of length that match pattern
             pattern: a dict mapping integers to letters, where the integer is
                 the location of the letter in the string.  If not given, returns 
-                all words of length
+                all words
             e.g. 
-                length=7, pattern={0:'c', 3:'q', 4:'u'} would match 'cumquat' 
-                and any other words following c__qu__ (length 7)
+                pattern={0:'c', 3:'q', 4:'u'} would match 'cumquat' 
+                and any other words following c__qu.*
         Outputs:
-            A generator that iterates over all strings in lexical order
+            A list of words in the Trie in lexical order
         '''
-        node = kwargs.get('start_node', self.root)
-        pattern = kwargs.get('pattern', {})
-        length = kwargs.get('length', 0)
+        stack = collections.deque()        
+        node = self.root
+        depth = -1
         
-        #basecase
-        if (node.depth == length-1 or length is 0) and node.is_word:
-            yield str(node)
+        result = []
+        
+        #special case for high-memory speedup by storing a list of all words
+        if self.fast and not pattern:
+            if self.list_is_sorted:
+                return self.wordslist
+            else:
+                self.wordslist.sort()
+                self.list_is_sorted = True
+                return self.wordslist
+        
+        try:
+            min_depth = max(pattern)
+        except ValueError:
+            min_depth = 0
             
-        #recursion
-        result = collections.deque()
-        if length is 0 or node.depth < length-1:
-            if node.depth+1 in pattern: #if there is a letter specified for the next node
+        while node or stack:
+            if not node: #moving left ran out, so go through the stack
+                depth, node = stack.popleft()
+                
+            
+            #if there's a word here, add it
+            if node.word and depth >= min_depth:
+                self.logger.debug('%s matches '+str(pattern), str(node))
+                result.append(node.word)
+            
+            #if there's a pattern for the next depth, use it
+            if depth+1 in pattern:
                 try:
-                    child = node.children[pattern[node.depth+1]]
-                    for w in self.get_words(start_node=child, 
-                            pattern=pattern, length=length):
-                        yield w
-                    #recurse on the one valid child matching pattern
-                except KeyError: 
-                    #we already know there was a pattern for the next letter
-                    #therefore, nothing matches the pattern, end of recursion
-                    pass
-                    
-            else: #no pattern restriction; recurse on all children
-                for key in sorted(node.children):
-                    child = node.children[key]
-                    logging.debug('Fetching words matching '+str(pattern)+
-                            ' of length'+str(length)+'starting at node '+
-                            str(child))
-                    for w in self.get_words(start_node=child, 
-                            pattern=pattern, length=length):
-                        yield w
-    
+                    node = node.children[pattern[depth+1]] 
+                    depth += 1
+                except KeyError: #no valid child for pattern
+                    node = None
+            
+            #if there isn't, pick alphabetically and queue all other children alphabetically
+            else:
+                try:
+                    letters = sorted(node.children.keys())
+                    nextnode = node.children[letters[0]]
+                    depth += 1
+                    for c in reversed(letters[1:]):
+                        stack.appendleft((depth, node.children[c]))
+                    node = nextnode
+
+                except IndexError: #no children
+                    node = None
+                        
+        return result      
+
     def add(self, word):
         '''Adds a word (string only) to the Trie'''
         currentnode = self.root
-
-        for char in self._normalize_word(word):
+            
+        for char in word:
             if char not in currentnode.children:
-                currentnode.children[char] = Node(char, currentnode)
+                currentnode.children[char] = Node()
+                self.node_count += 1
             
             currentnode = currentnode.children[char]
             
-        if not currentnode.is_word:
-            currentnode.is_word = True
+        if not currentnode.word:
+            currentnode.word = word
             self.size += 1
-    
-    def _normalize_word(self, word):
-        return word.upper()
+            self.logger.debug('Adding %s to the Trie', word)
+            if self.fast:
+                self.wordslist.append(word)
+                self.list_is_sorted = False
+                        
+                self.logger.debug('Also adding %s to the fast lookup list', word)
+        else:
+            self.logger.debug('%s was already in the Trie', word)
+            pass
     
 class Node:
     '''classdocs here'''
     
-    def __init__(self, char, p):
+    def __init__(self):
         '''init docs here'''
         self.children = {}
-        self.letter = char
-        self.parent = p
-        self.is_word = False
-        
-        if p is None:
-            self.depth = -1 #root is a start-of-string marker, not a character
-        else:
-            self.depth = p.depth + 1
+        self.word = None
         
     def __str__(self):
-        return self._prefix() + self.letter
+        if self.word:
+            return self.word
+        else:
+            return 'Node does not contain a word' 
     
     def __repr__(self):
         return self.__str__()
     
-    def _prefix(self):
-        prefix = ''
-        node = self
-        while node.parent:
-            prefix = node.parent.letter + prefix
-            node = node.parent
-            
-        return prefix
+    
