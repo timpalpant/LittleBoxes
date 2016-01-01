@@ -11,13 +11,13 @@ class Clue(object):
         self.num = num
         
     @classmethod
-    def parse(cls, line):
+    def parse(self, line):
         answer = line[:26].rstrip()
         num = int(line[26])
         year = line[28:32]
         source = line[33:36]
         text = line[37:].rstrip()
-        return cls(text, answer, source, year, num)
+        return self(text, answer, source, year, num)
         
     def __str__(self):
         return "%s: %s (%s, %s, %s)" % (
@@ -35,8 +35,8 @@ class ClueDB(object):
             for answer_to_counts in self._clue_to_answers.itervalues())
         
     @classmethod
-    def load(cls, filename):
-        db = cls()
+    def load(self, filename):
+        db = self()
         
         with open(filename) as fd:
             for line in fd:
