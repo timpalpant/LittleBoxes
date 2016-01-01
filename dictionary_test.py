@@ -3,7 +3,7 @@ Created on Dec 31, 2015
 
 @author: justinpalpant
 '''
-import unittest, logging, time, timeit, sys
+import unittest, logging, time, sys
 from dictionary import Dictionary, Trie
 
 performance_test = False
@@ -27,7 +27,7 @@ class TestDictionary(unittest.TestCase):
     def setUp(self):
         #Timing start
         self.start = time.time()
-        self.perfiters = 100
+        self.perfiters = 1000
 
     def tearDown(self):
         self.logger.debug('%s: Test completed in %0.3f seconds', self.id(), time.time()-self.start)
@@ -75,7 +75,6 @@ class TestDictionary(unittest.TestCase):
             list_file = [w for w in self.words if len(w)==i]
             self.assertListEqual(list_trie, list_file)
             for w in list_trie:
-                #check that all words are the right lenth
                 self.assertEqual(len(w), i)
 
     def test_performance_get_words_with_length(self):        

@@ -15,7 +15,16 @@ class Dictionary:
         Finding all words of length matching pattern (MUCH faster than list)
     '''
     
-    def __init__(self, fast=False):
+    def __init__(self, fast=True):
+        '''Creates an empty Dictionary
+        
+        Initializes logging and the dict used to store Tries. The boolean fast
+        should generally be True unless memory is a serious issue (in which case
+        you probably shouldn't use this class) - it causes each Trie to store a
+        master list of words to speed up the special case when you want all
+        words of a given length.
+        '''
+         
         self.fast = fast
         self.binned_tries = {}
         self.logger = logging.getLogger('Dictionary.logger')
@@ -24,7 +33,7 @@ class Dictionary:
         
     @classmethod   
     def load(cls, filename, fast=False):
-        '''Load a line-delineated text file'''
+        '''Load a line-delineated text file with one word per line'''
         start = time.time()
         dictionary = cls(fast=fast)
         
@@ -61,7 +70,6 @@ class Dictionary:
         except KeyError:
             self.binned_tries[len(word)] = Trie(fast=self.fast)
             self.binned_tries[len(word)].add(Dictionary._normalize_word(word))
-
     
     def get_words(self, **kwargs):
         '''Returns all words in the dictionary matching pattern and length
