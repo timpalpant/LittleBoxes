@@ -26,7 +26,7 @@ class Crossword(object):
         cn = p.clue_numbering()
         black_squares = [i for i, c in enumerate(p.fill)
                          if c == cls.BLACK_SQUARE]
-        return self(p.width, p.height, cn.across, cn.down, black_squares)
+        return cls(p.width, p.height, cn.across, cn.down, black_squares)
             
     def _validate(self):
         for clue in self.across.itervalues():
