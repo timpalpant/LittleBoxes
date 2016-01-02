@@ -11,13 +11,13 @@ class Clue(object):
         self.num = num
         
     @classmethod
-    def parse(self, line):
+    def parse(cls, line):
         answer = line[:26].rstrip()
         num = int(line[26])
         year = line[28:32]
         source = line[33:36]
         text = line[37:].rstrip()
-        return self(text, answer, source, year, num)
+        return cls(text, answer, source, year, num)
         
     def __str__(self):
         return "%s: %s (%s, %s, %s)" % (

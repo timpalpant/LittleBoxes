@@ -113,6 +113,7 @@ class Dictionary:
         
     
     def is_word(self, word):
+        '''Checks the dictionary to see if it contains a word'''
         word = Dictionary._normalize_word(word)
         try:
             result = self.binned_tries[len(word)].is_word(word)
@@ -133,7 +134,11 @@ class Trie:
     
     Reference: https://en.wikipedia.org/wiki/Trie
     '''    
-    def __init__(self, fast=False):
+    def __init__(self, fast=True):
+        '''Creates a root node, empty master list of words, and initializes
+        logging for the Trie
+        '''
+        
         self.root = Node()
         self.fast = fast
         self.wordslist = []
@@ -175,7 +180,7 @@ class Trie:
             None required, necessarily
         Keyword Arguments:
             pattern: a dict mapping integers to letters, where the integer is
-                the location of the letter in the string.  If not given, returns 
+                the index of the letter in the string.  If not given, returns 
                 all words
             e.g. 
                 pattern={0:'c', 3:'q', 4:'u'} would match 'cumquat' 
@@ -204,16 +209,13 @@ class Trie:
             min_depth = 0
             
         while node or stack:
-            if not node: #moving left ran out, so go through the stack
+            if not node:
                 depth, node = stack.popleft()
                 
-            
-            #if there's a word here, add it
             if node.word and depth >= min_depth:
                 self.logger.debug('%s matches '+str(pattern), str(node))
                 result.append(node.word)
             
-            #if there's a pattern for the next depth, use it
             if depth+1 in pattern:
                 try:
                     node = node.children[pattern[depth+1]] 
@@ -221,7 +223,7 @@ class Trie:
                 except KeyError: #no valid child for pattern
                     node = None
             
-            #if there isn't, pick alphabetically and queue all other children alphabetically
+            #No pattern - pick alphabetically and queue all other children
             else:
                 try:
                     letters = sorted(node.children.keys())
@@ -261,10 +263,10 @@ class Trie:
             pass
     
 class Node:
-    '''classdocs here'''
+    '''Small Node class for use in Trie'''
     
     def __init__(self):
-        '''init docs here'''
+        '''Creates an empty node and empty dictionary of children'''
         self.children = {}
         self.word = None
         

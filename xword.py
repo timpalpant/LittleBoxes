@@ -20,12 +20,12 @@ class Crossword(object):
         self._validate()
             
     @classmethod
-    def load(self, filename):
+    def load(cls, filename):
         with open(filename) as fd:
             p = puz.load(fd.read())
         cn = p.clue_numbering()
         black_squares = [i for i, c in enumerate(p.fill)
-                         if c == self.BLACK_SQUARE]
+                         if c == cls.BLACK_SQUARE]
         return self(p.width, p.height, cn.across, cn.down, black_squares)
             
     def _validate(self):
