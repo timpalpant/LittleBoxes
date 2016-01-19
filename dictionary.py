@@ -5,7 +5,7 @@ Created on Dec 27, 2015
 '''
 import logging, time, collections
 
-class Dictionary:
+class Dictionary(object):
     '''Stores a dictionary of words as a dictionary of length-binned Tries
     
     Requires moderate memory usage, but provides good speed for:
@@ -122,7 +122,7 @@ class Dictionary:
         
         return result
     
-class Trie:
+class Trie(object):
     '''
     Stores a dictionary of words in order to provide efficient pattern matching.
     
@@ -262,7 +262,7 @@ class Trie:
             self.logger.debug('%s was already in the Trie', word)
             pass
     
-class Node:
+class Node(object):
     '''Small Node class for use in Trie'''
     
     def __init__(self):
