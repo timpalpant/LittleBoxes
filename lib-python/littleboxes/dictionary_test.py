@@ -4,10 +4,9 @@ Created on Dec 31, 2015
 @author: justinpalpant
 '''
 import unittest, logging, time, sys
-from dictionary import Dictionary, Trie
+from littleboxes.dictionary import Dictionary, Trie
 
 performance_test = False
-logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 class TestDictionary(unittest.TestCase):
     
@@ -172,5 +171,5 @@ class TestDictionary(unittest.TestCase):
         return wordslist
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     unittest.main()
-
