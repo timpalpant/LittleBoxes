@@ -1,8 +1,6 @@
 import logging
 import puz
 
-from littleboxes.cluedb import Clue
-
 class InvalidCrosswordException(Exception):
     pass
 
