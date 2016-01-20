@@ -1,4 +1,4 @@
-from littlboxes.solver.solver import Solver
+from littleboxes.solver.solver import Solver
 
 class NGramSolver(Solver):
     """Solver that learns N-grams over letters from the provided dictionary,
