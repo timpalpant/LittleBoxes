@@ -6,7 +6,12 @@ import os
 
 from littleboxes.cluedb import ClueDB
 from littleboxes.dictionary import Dictionary
-from littleboxes.solver import MultiStageSolver, DictionarySolver
+from littleboxes.solver import (
+    ClueDBSolver,
+    DictionarySolver,
+    MultiStageSolver,
+    NGramSolver,
+)
 from littleboxes.xword import Crossword
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -51,7 +56,9 @@ def main():
     logging.info("Solving puzzle")
     solver = MultiStageSolver(
         solvers=[
-            (DictionarySolver(dictionary), 1.0),
+            ClueDBSolver(db),
+            DictionarySolver(dictionary),
+            NGramSolver(dictionary),
         ]
     )
     solution = solver.solve(x)
