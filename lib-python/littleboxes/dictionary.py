@@ -31,15 +31,14 @@ class Dictionary(object):
         if self.fast: self.logger.debug('Created a FAST Dictionary')
 
         
-    @classmethod   
-    def load(cls, filename, fast=False):
+    @classmethod
+    def load(cls, istream, fast=False):
         '''Load a line-delineated text file with one word per line'''
         start = time.time()
         dictionary = cls(fast=fast)
         
-        with open(filename) as dictfile:
-            for line in dictfile:
-                dictionary.add(line)
+        for line in istream:
+            dictionary.add(line)
                 
         dictionary.logger.debug('Loaded %d words into %d nodes in %0.3f seconds', 
                 dictionary.size, dictionary.nodes, time.time()-start)

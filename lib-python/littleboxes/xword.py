@@ -1,7 +1,7 @@
 import logging
 import puz
 
-from cluedb import Clue
+from littleboxes.cluedb import Clue
 
 class InvalidCrosswordException(Exception):
     pass
@@ -20,9 +20,8 @@ class Crossword(object):
         self._validate()
             
     @classmethod
-    def load(cls, filename):
-        with open(filename) as fd:
-            p = puz.load(fd.read())
+    def load(cls, istream):
+        p = puz.load(istream.read())
         cn = p.clue_numbering()
         black_squares = [i for i, c in enumerate(p.fill)
                          if c == cls.BLACK_SQUARE]

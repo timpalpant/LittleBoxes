@@ -1,4 +1,3 @@
-import cPickle as pickle
 from collections import defaultdict
 import logging
 
@@ -35,16 +34,15 @@ class ClueDB(object):
             for answer_to_counts in self._clue_to_answers.itervalues())
         
     @classmethod
-    def load(cls, filename):
+    def load(cls, istream):
         db = cls()
         
-        with open(filename) as fd:
-            for line in fd:
-                try:
-                    clue = Clue.parse(line)
-                    db.add_clue(clue.text, clue.answer)
-                except Exception:
-                    logging.exception("Invalid entry: %s", line.rstrip())
+        for line in istream:
+            try:
+                clue = Clue.parse(line)
+                db.add_clue(clue.text, clue.answer)
+            except Exception:
+                logging.exception("Invalid entry: %s", line.rstrip())
 
         return db
         
