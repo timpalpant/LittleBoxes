@@ -13,7 +13,10 @@ class Clue(object):
     def parse(cls, line):
         answer = line[:26].rstrip()
         num = int(line[26])
-        year = line[28:32]
+        try:
+            year = int(line[28:32])
+        except ValueError:
+            year = -1
         source = line[33:36]
         text = line[37:].rstrip()
         return cls(text, answer, source, year, num)
@@ -34,12 +37,26 @@ class ClueDB(object):
             for answer_to_counts in self._clue_to_answers.itervalues())
         
     @classmethod
-    def load(cls, istream):
+    def load(cls, istream, source=None, year_range=None):
+        """Load clue database from the provided iterable over Clue lines.
+
+        Args:
+            istream (iterable(str)): Iterable over Clue lines.
+            source (str or None): If provided, only load clues from this source.
+            year_range (tuple(int, int)): If provided, only load clues from this range of years.
+
+        Returns:
+            ClueDB
+        """
         db = cls()
         
         for line in istream:
             try:
                 clue = Clue.parse(line)
+                if source and clue.source != source:
+                    continue
+                if year_range and not (year_range[0] <= clue.year <= year_range[1]):
+                    continue
                 db.add_clue(clue.text, clue.answer)
             except Exception:
                 logging.exception("Invalid entry: %s", line.rstrip())
