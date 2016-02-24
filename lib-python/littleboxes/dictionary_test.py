@@ -7,6 +7,7 @@ import unittest
 import logging
 import time
 import sys
+
 from littleboxes.dictionary import Dictionary, Trie
 
 performance_test = False
@@ -82,6 +83,7 @@ class TestDictionary(unittest.TestCase):
             for w in list_trie:
                 self.assertEqual(len(w), i)
 
+    @unittest.skipIf(not performance_test, 'Not running performance tests')
     def test_performance_get_words_with_length(self):
         max_length = max(len(w) for w in self.words)
         t = [0, 0]
@@ -117,6 +119,7 @@ class TestDictionary(unittest.TestCase):
                 for idx, letter in p.items():
                     self.assertEqual(w[idx], letter)
 
+    @unittest.skipIf(not performance_test, 'Not running performance tests')
     def test_performance_get_words_with_pattern(self):
         patterns = [{0: 'A', 1: 'B'}, {0: 'C', 1: 'H', 3: 'Z'}]
 
@@ -137,6 +140,7 @@ class TestDictionary(unittest.TestCase):
         self.logger.info('Pattern matching test: List comprehension, %0.4f '
                          'seconds; Dictionary, %0.4f seconds', t[0], t[1])
 
+    @unittest.skipIf(not performance_test, 'Not running performance tests')
     def test_performance_pattern_and_length(self):
         patterns = [{0: 'A', 1: 'B'}, {0: 'C', 1: 'H', 3: 'Z'}]
         lengths = [7, 8]
