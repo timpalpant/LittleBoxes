@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import copy
 
+
 class Solver(object):
     """Interface for a generic crossword solver."""
     __metaclass__ = ABCMeta
@@ -18,8 +19,10 @@ class Solver(object):
         """
         pass
 
+
 class MultiStageSolver(Solver):
     """Solver that strings a sequence of Solvers together."""
+
     def __init__(self, solvers):
         if not solvers:
             raise ValueError("You must provide at least 1 solver")
@@ -48,11 +51,11 @@ class MultiStageSolver(Solver):
         """
         solver = solvers[0]
         partial_solutions = solver.solve(xword)
-        if len(solvers) > 1: # Pass solutions on to next solver.
+        if len(solvers) > 1:  # Pass solutions on to next solver.
             final_solutions = []
             for partial_solution, l1 in partial_solutions:
                 for solution, l2 in self._solve_recursive(solvers[1:], partial_solution):
-                    final_solutions.append((solution, l1*l2))
+                    final_solutions.append((solution, l1 * l2))
         else:
             final_solutions = partial_solutions
 

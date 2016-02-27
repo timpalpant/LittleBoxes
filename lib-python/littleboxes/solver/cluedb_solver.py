@@ -1,7 +1,9 @@
 from littleboxes.solver.solver import Solver
 
+
 class ClueDBSolver(Solver):
     """Solver that looks for clue matches in the provided database."""
+
     def __init__(self, db, distance_cutoff=0):
         """Args:
             db (ClueDB): The database of clues to search for answers.
