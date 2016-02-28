@@ -32,13 +32,20 @@ class Crossword(object):
     black_square = object()
     logger = logging.getLogger('littleboxes.xword.Crossword')
 
-    def __init__(self, width, height, clues):
+    def __init__(self, width, height, clues, solution=None):
         self.width = width
         self.height = height
         self.clues = clues
-        self.solution = [None for _ in xrange(width * height)]
-        self._fill_black_squares()
+        if solution is not None:
+            self.solution = solution
+        else:
+            self.solution = [None for _ in xrange(width * height)]
+            self._fill_black_squares()
         self._validate()
+
+    @property
+    def n_set(self):
+        return sum(1 for box in self.solution if box is not None)
 
     def _fill_black_squares(self):
         '''Goes through the set of clues, and marks squares which are not
@@ -61,6 +68,13 @@ class Crossword(object):
                 if self.solution[idx] == self.black_square:
                     raise InvalidCrosswordException("Clue with black square?!")
 
+    def copy(self):
+        '''Return a copy of this Crossword. The clues are not copied since they
+        are immutable, but the solution is.
+        '''
+        sol_copy = list(self.solution)
+        return self.__class__(self.width, self.height, self.clues, sol_copy)
+
     @classmethod
     def load(cls, istream):
         p = puz.load(istream.read())
@@ -68,15 +82,15 @@ class Crossword(object):
         clues = []
         for clue in cn.across:
             coord = XWCoordinate(num=clue['num'], direction=XWDirection.ACROSS)
-            indices = [clue['cell'] + i for i in xrange(clue['len'])]
+            indices = tuple(clue['cell'] + i for i in xrange(clue['len']))
             xwc = XWClue(coord, clue['clue'], indices)
             clues.append(xwc)
         for clue in cn.down:
             coord = XWCoordinate(num=clue['num'], direction=XWDirection.DOWN)
-            indices = [clue['cell'] + i * p.width for i in xrange(clue['len'])]
+            indices = tuple(clue['cell'] + i * p.width for i in xrange(clue['len']))
             xwc = XWClue(coord, clue['clue'], indices)
             clues.append(xwc)
-        return cls(p.width, p.height, clues)
+        return cls(p.width, p.height, tuple(clues))
 
     def get_fill(self, clue):
         '''Returns the current fill for the given clue.
