@@ -1,2 +1,6 @@
+crossword==0.1.2
+enum34==1.1.2
 puzpy==0.2.1
+py==1.4.31
+pytest==2.8.7
 wheel==0.24.0
