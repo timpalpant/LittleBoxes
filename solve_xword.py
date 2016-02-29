@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import argparse
 import logging
 import os
@@ -22,8 +20,14 @@ CLUES_DIR = os.path.join(DATA_DIR, 'clues')
 
 def pretty_print(x):
     for r in xrange(x.height):
-        row = x.solution[r * x.width:(r + 1) * x.width]
-        row = [l if l else 'X' for l in row]
+        row = []
+        for letter in x.solution[r * x.width:(r + 1) * x.width]:
+            if letter is None:
+                row.append('~')
+            elif letter == Crossword.black_square:
+                row.append('*')
+            else:
+                row.append(letter)
         print ''.join(row)
 
 

@@ -2,7 +2,7 @@ from collections import defaultdict
 import logging
 
 
-class Clue(object):
+class ClueDBRecord(object):
 
     def __init__(self, text, answer, source=None, year=None, num=None):
         self.text = text
@@ -29,6 +29,7 @@ class Clue(object):
 
 
 class ClueDB(object):
+    logger = logging.getLogger('littleboxes.xword.ClueDB')
 
     def __init__(self):
         # Map of clue -> map of answers -> number of occurrences of answer.
@@ -56,14 +57,14 @@ class ClueDB(object):
 
         for line in istream:
             try:
-                clue = Clue.parse(line)
+                clue = ClueDBRecord.parse(line)
                 if source and clue.source != source:
                     continue
                 if year_range and not (year_range[0] <= clue.year <= year_range[1]):
                     continue
                 db.add_clue(clue.text, clue.answer)
             except Exception:
-                logging.exception("Invalid entry: %s", line.rstrip())
+                cls.logger.exception("Invalid entry: %s", line.rstrip())
 
         return db
 
