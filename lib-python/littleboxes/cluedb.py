@@ -3,7 +3,6 @@ import logging
 import msgpack
 
 
-
 class ClueDBRecord(object):
 
     def __init__(self, text, answer, source=None, year=None, num=None):
@@ -35,7 +34,6 @@ class ClueDB(object):
 
     def __init__(self):
         # Map of clue -> map of answers -> number of occurrences of answer.
-
         self._clue_to_answers = defaultdict(lambda: defaultdict(int))
         self._answers_by_length = defaultdict(set)
 
@@ -65,7 +63,7 @@ class ClueDB(object):
                     continue
                 if year_range and not (year_range[0] <= clue.year <= year_range[1]):
                     continue
-                db.add_clue(clue.text, clue.answer)
+                db.add(clue.text, clue.answer)
             except Exception:
                 cls.logger.exception("Invalid entry: %s", line.rstrip())
 
@@ -108,17 +106,17 @@ class ClueDB(object):
 
         serializable = []
 
-        dict1 = dict({k: dict(d)
-                      for k, d in self._clue_to_answers.iteritems()})
-        dict2 = dict({k: list(v)
-                      for k, v in self._answers_by_length.iteritems()})
+        dict1 = {k: dict(d)
+                 for k, d in self._clue_to_answers.iteritems()}
+        dict2 = {k: list(v)
+                for k, v in self._answers_by_length.iteritems()}
 
         serializable.append(dict1)
         serializable.append(dict2)
 
         msgpack.dump(serializable, file_object)
 
-    def add_clue(self, clue, answer):
+    def add(self, clue, answer):
         clue = self._normalize_clue(clue)
         answer = self._normalize_answer(answer)
         self._clue_to_answers[clue][answer] += 1
