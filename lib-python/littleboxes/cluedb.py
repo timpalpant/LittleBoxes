@@ -1,5 +1,7 @@
 from collections import defaultdict
 import logging
+import msgpack
+
 
 
 class ClueDBRecord(object):
@@ -33,6 +35,7 @@ class ClueDB(object):
 
     def __init__(self):
         # Map of clue -> map of answers -> number of occurrences of answer.
+
         self._clue_to_answers = defaultdict(lambda: defaultdict(int))
         self._answers_by_length = defaultdict(set)
 
@@ -68,6 +71,53 @@ class ClueDB(object):
 
         return db
 
+    @classmethod
+    def deserialize(cls, file_object):
+        """Deserialize a saved ClueDB
+
+        Arguments:
+            file_object: a file_like object supporting the .read() method
+
+        Returns:
+            ClueDB
+        """
+
+        unserialized = msgpack.load(file_object, use_list=False)
+
+        db = cls()
+
+        dict1 = unserialized[0]
+        dict2 = unserialized[1]
+
+        db._clue_to_answers = defaultdict(
+            lambda: defaultdict(int), {k: defaultdict(int, d) for k, d in dict1.items()})
+        db._answers_by_length = defaultdict(
+            set, {k: set(v) for k, v in dict2.items()})
+
+        return db
+
+    def serialize(self, file_object):
+        """Serialize the ClueDB instance to a file using MessagePack
+
+        Arguments:
+            file_object: a file-like object that supports the .write(str) method
+
+        Returns:
+            Nothing
+        """
+
+        serializable = []
+
+        dict1 = dict({k: dict(d)
+                      for k, d in self._clue_to_answers.iteritems()})
+        dict2 = dict({k: list(v)
+                      for k, v in self._answers_by_length.iteritems()})
+
+        serializable.append(dict1)
+        serializable.append(dict2)
+
+        msgpack.dump(serializable, file_object)
+
     def add_clue(self, clue, answer):
         clue = self._normalize_clue(clue)
         answer = self._normalize_answer(answer)
@@ -97,3 +147,7 @@ class ClueDB(object):
 
     def __len__(self):
         return len(self._clue_to_answers)
+
+    def __eq__(self, other):
+        return (self._clue_to_answers == other._clue_to_answers and
+                self._answers_by_length == other._answers_by_length)
