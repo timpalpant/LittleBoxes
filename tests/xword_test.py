@@ -6,8 +6,7 @@ from littleboxes.xword import Crossword, XWDirection
 
 class TestCrossword(unittest.TestCase):
     TEST_PUZZLE = os.path.join(os.path.dirname(__file__),
-                               '..', '..', 'data', 'nyt',
-                               'daily-2015-12-13.puz')
+                               'fixtures', 'test.puz')
 
     def setUp(self):
         self.x = Crossword.load(open(self.TEST_PUZZLE))

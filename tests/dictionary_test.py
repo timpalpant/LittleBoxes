@@ -5,12 +5,13 @@ Created on Dec 31, 2015
 '''
 import unittest
 import logging
+import os
 import time
 import sys
 
 from littleboxes.dictionary import Dictionary, Trie
 
-performance_test = False
+performance_test = bool(int(os.getenv('PERFORMANCE', False)))
 
 
 class TestDictionary(unittest.TestCase):
@@ -21,8 +22,10 @@ class TestDictionary(unittest.TestCase):
         cls.logger = logging.getLogger('TestDictionary.logger')
 
         # Instance setup
-        cls.dictionary_file = 'data/dictionaries/ospd3.txt'
-        cls.dictionary = Dictionary.load(cls.dictionary_file, fast=True)
+        cls.dictionary_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'fixtures', 'test.dict')
+        cls.dictionary = Dictionary.load(open(cls.dictionary_file), fast=True)
         cls.words = sorted([Dictionary._normalize_word(w)
                             for w in open(cls.dictionary_file)])
 
@@ -48,7 +51,6 @@ class TestDictionary(unittest.TestCase):
         self.logger.info('Storage size test: single Trie uses %d nodes, '
                          'Dictionary uses %d nodes', self.trie.node_count,
                          self.dictionary.nodes)
-        pass
 
     @unittest.skipIf(performance_test, 'Only running performance tests')
     def test_size(self):
@@ -65,7 +67,7 @@ class TestDictionary(unittest.TestCase):
     @unittest.skipIf(performance_test, 'Only running performance tests')
     def test_nonexistence_of_nonwords(self):
         '''This is important but I don't know how to generate nonwords well'''
-        pass
+        self.assertFalse(self.dictionary.is_word('noexisto'))
 
     @unittest.skipIf(performance_test, 'Only running performance tests')
     def test_enumeration_of_all_words_in_dictionary(self):
