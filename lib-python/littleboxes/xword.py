@@ -22,7 +22,7 @@ XWCoordinate = namedtuple('XWCoordinate', ['num', 'direction'])
 #        that this clue references. Indices are linear, row-major order.
 #        For across clues, they should be sequential; for down clues
 #        they will be offset by the width of the Crossword.
-XWClue = namedtuple('XWClue', ['coord', 'text', 'box_indices'])
+XWClue = namedtuple('XWClue', ['coord', 'text', 'answer', 'box_indices'])
 
 
 class Crossword(object):
@@ -83,14 +83,16 @@ class Crossword(object):
         for clue in cn.across:
             coord = XWCoordinate(num=clue['num'], direction=XWDirection.ACROSS)
             indices = tuple(clue['cell'] + i for i in xrange(clue['len']))
-            xwc = XWClue(coord, clue['clue'], indices)
+            answer = ''.join(p.solution[i] for i in indices)
+            xwc = XWClue(coord, clue['clue'], answer, indices)
             clues.append(xwc)
         for clue in cn.down:
             coord = XWCoordinate(num=clue['num'], direction=XWDirection.DOWN)
             indices = tuple(clue['cell'] + i * p.width for i in xrange(clue['len']))
-            xwc = XWClue(coord, clue['clue'], indices)
+            answer = ''.join(p.solution[i] for i in indices)
+            xwc = XWClue(coord, clue['clue'], answer, indices)
             clues.append(xwc)
-        return cls(p.width, p.height, tuple(clues))
+        return cls(p.width, p.height, tuple(clues), list(p.solution))
 
     def get_fill(self, clue):
         '''Returns the current fill for the given clue.
