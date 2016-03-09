@@ -37,7 +37,7 @@ def main():
             logging.debug("Processing: %s", puz)
             try:
                 with open(puz) as fd:
-                    x = Crossword.load(fd)
+                    x = Crossword.load(fd, include_solution=True)
                     for clue in x.clues:
                         db.add(clue.text, clue.answer)
             except Exception:
