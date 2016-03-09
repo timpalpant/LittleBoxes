@@ -76,7 +76,7 @@ class Crossword(object):
         return self.__class__(self.width, self.height, self.clues, sol_copy)
 
     @classmethod
-    def load(cls, istream):
+    def load(cls, istream, include_solution=False):
         p = puz.load(istream.read())
         cn = p.clue_numbering()
         clues = []
@@ -92,7 +92,10 @@ class Crossword(object):
             answer = ''.join(p.solution[i] for i in indices)
             xwc = XWClue(coord, clue['clue'], answer, indices)
             clues.append(xwc)
-        return cls(p.width, p.height, tuple(clues), list(p.solution))
+        solution = None
+        if include_solution:
+            solution = list(p.solution)
+        return cls(p.width, p.height, tuple(clues), solution)
 
     def get_fill(self, clue):
         '''Returns the current fill for the given clue.
