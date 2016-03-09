@@ -61,10 +61,11 @@ class ClueDBCliqueSolver(Solver):
         answers = {}
 
         for xwclue in xword.clues:
-            db_answers = self._db.answers_for_clue_of_length(
-                xwclue.text, len(xwclue.box_indices))
-
-            if db_answers:
-                answers[xwclue] = db_answers
+            all_answers = set()
+            for clue, similarity in self._db.search(xwclue.text, self._clue_threshold):
+                db_answers = self._db.answers(clue, len(xwclue.box_indices))
+                all_answers.update(db_answers)
+            if all_answers:
+                answers[xwclue] = all_answers
 
         return answers
