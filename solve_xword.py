@@ -36,7 +36,7 @@ def opts():
                         default=os.path.join(DICTIONARIES_DIR, 'en.txt'),
                         help='Dictionary of words to use (default: %(default)s)')
     parser.add_argument('--cluedb', type=argparse.FileType('r'),
-                        default=os.path.join(CLUES_DIR, 'clues.db'),
+                        default=os.path.join(CLUES_DIR, 'clues.mpk'),
                         help='Clue database to use (default: %(default)s)')
     parser.add_argument('--nsolutions', type=int, default=1,
                         help='Number of solutions to show (default: %(default)s)')
@@ -55,7 +55,7 @@ def main():
     x = Crossword.load(args.puzzle)
 
     logging.info("Loading clue DB")
-    db = ClueDB.load(args.cluedb)
+    db = ClueDB.deserialize(args.cluedb)
 
     logging.info("Loading dictionary")
     dictionary = Dictionary.load(args.dictionary)

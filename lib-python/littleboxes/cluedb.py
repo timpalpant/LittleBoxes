@@ -1,6 +1,6 @@
-from collections import defaultdict
 import logging
 import msgpack
+from ngram import NGram
 
 
 class ClueDBRecord(object):
@@ -32,15 +32,10 @@ class ClueDBRecord(object):
 class ClueDB(object):
     logger = logging.getLogger('littleboxes.xword.ClueDB')
 
-    def __init__(self):
-        # Map of clue -> map of answers -> number of occurrences of answer.
-        self._clue_to_answers = defaultdict(lambda: defaultdict(int))
-        self._answers_by_length = defaultdict(set)
-
-    @property
-    def n_answers(self):
-        return sum(sum(answer_to_counts.itervalues())
-                   for answer_to_counts in self._clue_to_answers.itervalues())
+    def __init__(self, N=3):
+        # Map of clue -> set of answers that have been used for that clue.
+        self._clue_to_answers = {}
+        self._fuzzy_clueset = NGram(N=N)
 
     @classmethod
     def load(cls, istream, source=None, year_range=None):
@@ -80,18 +75,11 @@ class ClueDB(object):
             ClueDB
         """
 
-        unserialized = msgpack.load(file_object, use_list=False)
-
         db = cls()
-
-        dict1 = unserialized[0]
-        dict2 = unserialized[1]
-
-        db._clue_to_answers = defaultdict(
-            lambda: defaultdict(int), {k: defaultdict(int, d) for k, d in dict1.items()})
-        db._answers_by_length = defaultdict(
-            set, {k: set(v) for k, v in dict2.items()})
-
+        unpacker = msgpack.Unpacker(file_object)
+        for clue, answers in unpacker:
+            for answer in answers:
+                db.add(clue, answer)
         return db
 
     def serialize(self, file_object):
@@ -103,39 +91,43 @@ class ClueDB(object):
         Returns:
             Nothing
         """
-
-        serializable = []
-
-        dict1 = {k: dict(d)
-                 for k, d in self._clue_to_answers.iteritems()}
-        dict2 = {k: list(v)
-                for k, v in self._answers_by_length.iteritems()}
-
-        serializable.append(dict1)
-        serializable.append(dict2)
-
-        msgpack.dump(serializable, file_object)
+        for clue, answers in self._clue_to_answers.iteritems():
+            msgpack.pack((clue, list(answers)), file_object)
 
     def add(self, clue, answer):
+        '''Add a clue-answer pair to the DB.'''
         clue = self._normalize_clue(clue)
         answer = self._normalize_answer(answer)
-        self._clue_to_answers[clue][answer] += 1
-        self._answers_by_length[len(answer)].add(answer)
+        if clue not in self._clue_to_answers:
+            self._clue_to_answers[clue] = set()
+        self._clue_to_answers[clue].add(answer)
+        self._fuzzy_clueset.add(clue)
 
-    def answers_for_clue(self, clue):
+    def search(self, clue, threshold=1.0):
+        '''Search the DB for clues similar to @clue.
+
+        Args:
+            clue (str): The search string.
+            threshold (float, 0.0-1.0): Fraction of similar N-grams
+                in clue required for match.
+
+        Returns:
+            list(tuple(str, float)): Matching clues and their similarity,
+                in descending order from most similar.
+        '''
         clue = self._normalize_clue(clue)
-        if clue in self._clue_to_answers:
-            return self._clue_to_answers[clue]
-        return {}
+        # TODO(timpalpant): Get rid of this performance hack for exact matches.
+        if threshold == 1.0 and clue in self._clue_to_answers:
+            return {(clue, 1.0)}
+        return self._fuzzy_clueset.search(clue, threshold=threshold)
 
-    def answers_of_length(self, n_letters):
-        if n_letters in self._answers_by_length:
-            return self._answers_by_length[n_letters]
-        return set()
-
-    def answers_for_clue_of_length(self, clue, n_letters):
-        return set(answer for answer in self.answers_for_clue(clue).iterkeys()
-                   if len(answer) == n_letters)
+    def answers(self, clue, length=None):
+        '''Get previous answers for @clue.'''
+        clue = self._normalize_clue(clue)
+        answers = self._clue_to_answers[clue]
+        if length is not None:
+            return set(answer for answer in answers if len(answer) == length)
+        return set(answers)
 
     def _normalize_clue(self, clue):
         return clue.lower()
@@ -147,5 +139,4 @@ class ClueDB(object):
         return len(self._clue_to_answers)
 
     def __eq__(self, other):
-        return (self._clue_to_answers == other._clue_to_answers and
-                self._answers_by_length == other._answers_by_length)
+        return (self._clue_to_answers == other._clue_to_answers)
