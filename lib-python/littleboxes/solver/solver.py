@@ -14,7 +14,7 @@ class Solver(object):
             xword (Crossword): The puzzle to solve.
 
         Yields:
-            (Crossword, float): Potential solutions of crossword puzzle,
+            (float, Crossword): Potential solutions of crossword puzzle,
                 with some measure of confidence (higher is better).
         """
         pass
@@ -34,8 +34,8 @@ class MultiStageSolver(Solver):
         The likelihood for the returned solutions is the product of the likelihood
         that was assigned by each solver.
         """
-        for sol, l in self._solve_recursive(self.solvers, xword):
-            yield sol, l
+        for p, sol in self._solve_recursive(self.solvers, xword):
+            yield p, sol
 
     def _solve_recursive(self, solvers, xword):
         """Applies the first solver to the puzzle. Takes all of its proposed solutions
@@ -47,12 +47,12 @@ class MultiStageSolver(Solver):
             xword (Crossword): The crossword puzzle to solve.
 
         Yields:
-            (Crossword, float): A possible Crossword solution and confidence/value.
+            (float, Crossword): A possible Crossword solution and confidence/value.
         """
         solver = solvers[0]
-        for s1, l1 in solver.solve(xword):
+        for p1, s1 in solver.solve(xword):
             if len(solvers) > 1:  # Pass solutions on to next solver.
-                for s2, l2 in self._solve_recursive(solvers[1:], s1):
-                    yield s1, l1*l2
+                for p2, s2 in self._solve_recursive(solvers[1:], s1):
+                    yield p1*p2, s2
             else:
-                yield s1, l1
+                yield p1, s1

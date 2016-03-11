@@ -69,8 +69,8 @@ def main():
     )
 
     solutions = solver.solve(x)
-    for i, solution in enumerate(solutions):
-        logging.info("Solution #%d", i+1)
+    for i, (p, solution) in enumerate(solutions):
+        logging.info("Solution #%d (p = %f)", i+1, p)
         pretty_print(solution)
 
 if __name__ == "__main__":

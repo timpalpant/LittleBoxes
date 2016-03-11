@@ -11,4 +11,4 @@ class NGramSolver(Solver):
         self.n = n
 
     def solve(self, xword):
-        yield (xword, 1.0)
+        yield 1.0, xword

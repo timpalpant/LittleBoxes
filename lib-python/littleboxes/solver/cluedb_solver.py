@@ -31,7 +31,7 @@ class ClueDBCliqueSolver(Solver):
             xword - a Crossword to be solved
 
         Yields:
-            sorted list of tuples (Crossword, prob) of partially solved 
+            sorted list of tuples (prob, Crossword) of partially solved
             Crosswords in order from most- to least-solved with prob=1.0 for
             each Crossword for now
         '''
@@ -42,7 +42,7 @@ class ClueDBCliqueSolver(Solver):
             solved = xword.copy()
             for fill in xwsolution:
                 solved.set_fill(fill.clue, fill.word)
-            yield solved
+            yield solved.n_set, solved
 
     def query_answers(self, xword):
         '''From the self._db fetch all possible answers to all clues in xword
