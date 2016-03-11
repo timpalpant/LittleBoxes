@@ -39,7 +39,8 @@ def main():
                 with open(puz) as fd:
                     x = Crossword.load(fd, include_solution=True)
                     for clue in x.clues:
-                        db.add(clue.text, clue.answer)
+                        word = ''.join(x.get_fill(clue))
+                        db.add(clue.text, word)
             except Exception:
                 logging.exception("Error loading: %s", puz)
 

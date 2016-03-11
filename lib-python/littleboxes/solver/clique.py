@@ -1,5 +1,7 @@
 from networkx import Graph
 
+from littleboxes.xword import XWFill
+
 def build_conflict_graph(xword, possible_answers):
     '''Build a network describing non-conflicting answer choices
 
@@ -18,8 +20,7 @@ def build_conflict_graph(xword, possible_answers):
     for xwclue, wordset in possible_answers.iteritems():
         for word in wordset:
             if not xword.would_conflict(xwclue, word):
-                answered_clue = xwclue._replace(answer=word)
-                g.add_node(answered_clue)
+                g.add_node(XWFill(clue=xwclue, word=word))
 
     for n in g:
         testcopy = xword.copy()

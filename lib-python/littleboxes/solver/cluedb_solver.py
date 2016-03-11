@@ -41,7 +41,7 @@ class ClueDBCliqueSolver(Solver):
         for xwsolution in find_cliques(conflict_graph):
             solved = xword.copy()
             for fill in xwsolution:
-                solved.set_fill(fill.clue, fill.answer)
+                solved.set_fill(fill.clue, fill.word)
             yield solved
 
     def query_answers(self, xword):
