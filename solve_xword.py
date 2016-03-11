@@ -4,6 +4,7 @@ import os
 
 from littleboxes.cluedb import ClueDB
 from littleboxes.dictionary import Dictionary, PhraseDictionary
+from littleboxes.filter.nbest import nbest
 from littleboxes.solver.solver import MultiStageSolver
 from littleboxes.solver.cluedb_solver import ClueDBCliqueSolver
 from littleboxes.solver.dictionary_solver import DictionaryCliqueSolver
@@ -71,7 +72,7 @@ def main():
     )
 
     solutions = solver.solve(x)
-    for i, (p, solution) in enumerate(solutions):
+    for i, (p, solution) in enumerate(nbest(solutions, 1, args.nsolutions)):
         logging.info("Solution #%d (p = %f)", i+1, p)
         pretty_print(solution)
 
