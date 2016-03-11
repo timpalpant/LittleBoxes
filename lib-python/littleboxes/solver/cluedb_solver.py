@@ -34,13 +34,17 @@ class ClueDBCliqueSolver(Solver):
             Crosswords in order from most- to least-solved with prob=1.0 for
             each Crossword for now
         '''
+        self.logger.info('Looking up answers in ClueDB')
         possible_answers = self.query_answers(xword)
+        self.logger.info('Generating conflict graph')
         conflict_graph = build_conflict_graph(xword, possible_answers)
 
+        self.logger.info('Finding cliques in conflict graph')
         for xwsolution in find_cliques(conflict_graph):
             solved = xword.copy()
             for fill in xwsolution:
                 solved.set_fill(fill.clue, fill.word)
+            self.logger.info('Found solution')
             yield solved.n_set, solved
 
     def query_answers(self, xword):
@@ -57,8 +61,10 @@ class ClueDBCliqueSolver(Solver):
 
         for xwclue in xword.clues:
             all_answers = set()
+            self.logger.debug('Finding clues within %f of %r', self._clue_threshold, xwclue.text)
             for clue, similarity in self._db.search(xwclue.text, self._clue_threshold):
                 db_answers = self._db.answers(clue, len(xwclue.box_indices))
+                self.logger.debug('%d possible answers for %r', len(db_answers), clue)
                 all_answers.update(db_answers)
             if all_answers:
                 answers[xwclue] = all_answers
