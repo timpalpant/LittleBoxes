@@ -3,10 +3,10 @@ import logging
 import os
 
 from littleboxes.cluedb import ClueDB
-from littleboxes.dictionary import Dictionary
+from littleboxes.dictionary import Dictionary, PhraseDictionary
 from littleboxes.solver.solver import MultiStageSolver
 from littleboxes.solver.cluedb_solver import ClueDBCliqueSolver
-from littleboxes.solver.dictionary_solver import DictionarySolver
+from littleboxes.solver.dictionary_solver import DictionaryCliqueSolver
 from littleboxes.xword import Crossword
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -59,12 +59,14 @@ def main():
 
     logging.info("Loading dictionary")
     dictionary = Dictionary.load(args.dictionary)
+    # TODO: Too many possibilities for clique-solving!
+    pd = PhraseDictionary(dictionary)
 
     logging.info("Solving puzzle")
     solver = MultiStageSolver(
         solvers=[
             ClueDBCliqueSolver(db),
-            DictionarySolver(dictionary),
+            DictionaryCliqueSolver(dictionary),
         ],
     )
 
