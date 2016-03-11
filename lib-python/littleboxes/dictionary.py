@@ -3,6 +3,7 @@ Created on Dec 27, 2015
 
 @author: justinpalpant
 '''
+import itertools
 import logging
 import time
 import collections
@@ -281,3 +282,57 @@ class Node(object):
 
     def __repr__(self):
         return self.__str__()
+
+
+def partitions(n):
+    '''Yield all partitions of non-negative integer n.'''
+    if n == 0:
+        yield []
+        return
+    for p in partitions(n-1):
+        yield [1] + p
+        if p and (len(p) < 2 or p[1] > p[0]):
+            yield [p[0] + 1] + p[1:]
+
+
+def unique_permutations(elements):
+    if len(elements) == 1:
+        yield (elements[0],)
+    else:
+        unique_elements = set(elements)
+        for first_element in unique_elements:
+            remaining_elements = list(elements)
+            remaining_elements.remove(first_element)
+            for sub_permutation in unique_permutations(remaining_elements):
+                yield (first_element,) + sub_permutation
+
+
+class PhraseDictionary(object):
+    '''Find phrases matching certain pattern in a Dictionary.'''
+    def __init__(self, dictionary):
+        self._dictionary = dictionary
+
+    def get(self, pattern, length):
+        '''Get words and phrases matching the given pattern, and having
+        the given total length.
+
+        See `Dictionary.get_words()` for the pattern format.
+
+        Yields tuples of words.
+        '''
+        # For all partitions of word lengths that add up to the desired total.
+        for p in partitions(length):
+            # For all permutations of those word lengths.
+            for perm in unique_permutations(p):
+                words = []
+                cur_idx = 0
+                for word_length in perm:
+                    # Find elements of the pattern that correspond to
+                    # this window.
+                    pn = {k-cur_idx: v for k, v in pattern.iteritems()
+                          if k >= cur_idx and k < cur_idx + word_length}
+                    words.append(self._dictionary.get_words(
+                        pattern=pn, length=word_length))
+                    cur_idx += word_length
+                for phrase in itertools.product(*words):
+                    yield phrase
