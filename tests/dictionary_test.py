@@ -9,7 +9,11 @@ import os
 import time
 import sys
 
-from littleboxes.dictionary import Dictionary, Trie
+from littleboxes.dictionary import (
+    Dictionary,
+    PhraseDictionary,
+    Trie,
+)
 
 performance_test = bool(int(os.getenv('PERFORMANCE', False)))
 
@@ -181,6 +185,55 @@ class TestDictionary(unittest.TestCase):
             wordslist = nextlist
 
         return wordslist
+
+
+class TestPhraseDictionary(unittest.TestCase):
+    WORDS = ['the', 'cat', 'in', 'the', 'hat',
+             'green', 'eggs', 'and', 'ham']
+
+    def setUp(self):
+        d = Dictionary()
+        for word in self.WORDS:
+            d.add(word)
+        self.pd = PhraseDictionary(d)
+
+    def test_get_no_pattern(self):
+        cases = [
+            [1, []],
+            [3, [('AND',), ('CAT',), ('HAM',), ('HAT',), ('THE',)]],
+            [4, [('EGGS',), ('IN', 'IN')]],
+            [5, [('AND', 'IN'),
+                 ('CAT', 'IN'),
+                 ('GREEN',),
+                 ('HAM', 'IN'),
+                 ('HAT', 'IN'),
+                 ('IN', 'AND'),
+                 ('IN', 'CAT'),
+                 ('IN', 'HAM'),
+                 ('IN', 'HAT'),
+                 ('IN', 'THE'),
+                 ('THE', 'IN')]],
+        ]
+        for length, expected in cases:
+            words = sorted(self.pd.get({}, length))
+            self.assertListEqual(words, expected)
+
+    def test_get_pattern(self):
+        cases = [
+            [{1: 'T'}, 3, []],
+            [{0: 'T', 2: 'E'}, 1, []],
+            [{0: 'T'}, 3, [('THE',)]],
+            [{0: 'H', 1: 'A'}, 3, [('HAM',), ('HAT',)]],
+            [{2: 'E'}, 3, [('THE',)]],
+            [{2: 'E'}, 5, [('GREEN',), ('THE', 'IN')]],
+            [{0: 'T', 3: 'C', 6: 'I', 8: 'T', 11: 'H', 13: 'T'}, 14,
+                [('THE', 'CAT', 'IN', 'THE', 'HAT')]],
+        ]
+
+        for pattern, length, expected in cases:
+            words = sorted(self.pd.get(pattern, length))
+            self.assertListEqual(words, expected)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
