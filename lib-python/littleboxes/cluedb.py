@@ -32,10 +32,10 @@ class ClueDBRecord(object):
 class ClueDB(object):
     logger = logging.getLogger('littleboxes.xword.ClueDB')
 
-    def __init__(self):
+    def __init__(self, N=3):
         # Map of clue -> set of answers that have been used for that clue.
         self._clue_to_answers = {}
-        self._fuzzy_clueset = NGram()
+        self._fuzzy_clueset = NGram(N=N)
 
     @classmethod
     def load(cls, istream, source=None, year_range=None):
@@ -76,9 +76,10 @@ class ClueDB(object):
         """
 
         db = cls()
-        db._clue_to_answers = msgpack.load(file_object)
-        for clue in db._clue_to_answers:
-            db._fuzzy_clueset.add(clue)
+        unpacker = msgpack.Unpacker(file_object)
+        for clue, answers in unpacker:
+            for answer in answers:
+                db.add(clue, answer)
         return db
 
     def serialize(self, file_object):
@@ -90,7 +91,8 @@ class ClueDB(object):
         Returns:
             Nothing
         """
-        msgpack.dump(self._clue_to_answers, file_object)
+        for clue, answers in self._clue_to_answers.iteritems():
+            msgpack.pack((clue, list(answers)), file_object)
 
     def add(self, clue, answer):
         '''Add a clue-answer pair to the DB.'''
@@ -114,12 +116,18 @@ class ClueDB(object):
                 in descending order from most similar.
         '''
         clue = self._normalize_clue(clue)
+        # TODO(timpalpant): Get rid of this performance hack for exact matches.
+        if threshold == 1.0 and clue in self._clue_to_answers:
+            return {(clue, 1.0)}
         return self._fuzzy_clueset.search(clue, threshold=threshold)
 
-    def answers(self, clue):
+    def answers(self, clue, length=None):
         '''Get previous answers for @clue.'''
         clue = self._normalize_clue(clue)
-        return self._clue_to_answers[clue]
+        answers = self._clue_to_answers[clue]
+        if length is not None:
+            return set(answer for answer in answers if len(answer) == length)
+        return set(answers)
 
     def _normalize_clue(self, clue):
         return clue.lower()

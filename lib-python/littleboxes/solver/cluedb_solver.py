@@ -10,15 +10,14 @@ class ClueDBCliqueSolver(Solver):
 
     logger = logging.getLogger('littleboxes.solver.ClueDBCliqueSolver')
 
-    def __init__(self, db, distance_cutoff=0):
+    def __init__(self, db, clue_threshold=1.0):
         """Args:
             db (ClueDB): The database of clues to search for answers.
-            distance_cutoff (int): Clues will only be considered a match if 
-                they have Levenstein distance <= cutoff. Default is 0 meaning
-                exact match.
+            clue_threshold (float, 0.0-1.0): Clues will be considered a match if
+                they have this much N-gram similarity.
         """
         self._db = db
-        self._distance_cutoff = distance_cutoff
+        self._clue_threshold = clue_threshold
 
     def solve(self, xword):
         '''Graph-based search for partial solutions to a crossword
@@ -46,10 +45,6 @@ class ClueDBCliqueSolver(Solver):
 
     def query_answers(self, xword):
         '''From the self._db fetch all possible answers to all clues in xword
-
-        DOES NOT currently use self._distance_cutoff, but this would be a good
-        place for it - everything else would fall into place nicely if this
-        method changed
 
         Arguments:
             xword - a Crossword
