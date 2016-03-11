@@ -13,8 +13,8 @@ class Solver(object):
         Args:
             xword (Crossword): The puzzle to solve.
 
-        Returns:
-            list((Crossword, float)): List of potential solutions of crossword puzzle,
+        Yields:
+            (float, Crossword): Potential solutions of crossword puzzle,
                 with some measure of confidence (higher is better).
         """
         pass
@@ -34,7 +34,8 @@ class MultiStageSolver(Solver):
         The likelihood for the returned solutions is the product of the likelihood
         that was assigned by each solver.
         """
-        return self._solve_recursive(self.solvers, xword)
+        for p, sol in self._solve_recursive(self.solvers, xword):
+            yield p, sol
 
     def _solve_recursive(self, solvers, xword):
         """Applies the first solver to the puzzle. Takes all of its proposed solutions
@@ -45,18 +46,13 @@ class MultiStageSolver(Solver):
             solvers (list(Solver)): A sequence of solvers to apply to the puzzle.
             xword (Crossword): The crossword puzzle to solve.
 
-        Returns;
-            list((Crossword, float)): A list of possible solutions to the crossword,
-                and their associated confidences (higher is better).
+        Yields:
+            (float, Crossword): A possible Crossword solution and confidence/value.
         """
         solver = solvers[0]
-        partial_solutions = solver.solve(xword)
-        if len(solvers) > 1:  # Pass solutions on to next solver.
-            final_solutions = []
-            for partial_solution, l1 in partial_solutions:
-                for solution, l2 in self._solve_recursive(solvers[1:], partial_solution):
-                    final_solutions.append((solution, l1 * l2))
-        else:
-            final_solutions = partial_solutions
-
-        return final_solutions
+        for p1, s1 in solver.solve(xword):
+            if len(solvers) > 1:  # Pass solutions on to next solver.
+                for p2, s2 in self._solve_recursive(solvers[1:], s1):
+                    yield p1*p2, s2
+            else:
+                yield p1, s1

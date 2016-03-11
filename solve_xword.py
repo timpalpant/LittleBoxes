@@ -4,12 +4,9 @@ import os
 
 from littleboxes.cluedb import ClueDB
 from littleboxes.dictionary import Dictionary
-from littleboxes.solver import (
-    ClueDBSolver,
-    DictionarySolver,
-    MultiStageSolver,
-    NGramSolver,
-)
+from littleboxes.solver.solver import MultiStageSolver
+from littleboxes.solver.cluedb_solver import ClueDBCliqueSolver
+from littleboxes.solver.dictionary_solver import DictionarySolver
 from littleboxes.xword import Crossword
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -37,10 +34,12 @@ def opts():
                         help='The crossword puzzle to solve, in *.puz format')
     parser.add_argument('--dictionary', type=argparse.FileType('r'),
                         default=os.path.join(DICTIONARIES_DIR, 'en.txt'),
-                        help='Dictionary of words to use (default: %(default)s')
+                        help='Dictionary of words to use (default: %(default)s)')
     parser.add_argument('--cluedb', type=argparse.FileType('r'),
                         default=os.path.join(CLUES_DIR, 'clues.db'),
-                        help='Clue database to use (default: %(default)s')
+                        help='Clue database to use (default: %(default)s)')
+    parser.add_argument('--nsolutions', type=int, default=1,
+                        help='Number of solutions to show (default: %(default)s)')
     parser.add_argument('--logging',
                         choices=('debug', 'info', 'warning',
                                  'error', 'critical'),
@@ -64,13 +63,15 @@ def main():
     logging.info("Solving puzzle")
     solver = MultiStageSolver(
         solvers=[
-            ClueDBSolver(db),
+            ClueDBCliqueSolver(db),
             DictionarySolver(dictionary),
-            NGramSolver(dictionary),
-        ]
+        ],
     )
-    solution = solver.solve(x)
-    pretty_print(solution)
+
+    solutions = solver.solve(x)
+    for i, (p, solution) in enumerate(solutions):
+        logging.info("Solution #%d (p = %f)", i+1, p)
+        pretty_print(solution)
 
 if __name__ == "__main__":
     main()

@@ -22,7 +22,8 @@ XWCoordinate = namedtuple('XWCoordinate', ['num', 'direction'])
 #        that this clue references. Indices are linear, row-major order.
 #        For across clues, they should be sequential; for down clues
 #        they will be offset by the width of the Crossword.
-XWClue = namedtuple('XWClue', ['coord', 'text', 'answer', 'box_indices'])
+XWClue = namedtuple('XWClue', ['coord', 'text', 'box_indices'])
+XWFill = namedtuple('XWFill', ['clue', 'word'])
 
 
 class Crossword(object):
@@ -83,14 +84,12 @@ class Crossword(object):
         for clue in cn.across:
             coord = XWCoordinate(num=clue['num'], direction=XWDirection.ACROSS)
             indices = tuple(clue['cell'] + i for i in xrange(clue['len']))
-            answer = ''.join(p.solution[i] for i in indices)
-            xwc = XWClue(coord, clue['clue'], answer, indices)
+            xwc = XWClue(coord, clue['clue'], indices)
             clues.append(xwc)
         for clue in cn.down:
             coord = XWCoordinate(num=clue['num'], direction=XWDirection.DOWN)
             indices = tuple(clue['cell'] + i * p.width for i in xrange(clue['len']))
-            answer = ''.join(p.solution[i] for i in indices)
-            xwc = XWClue(coord, clue['clue'], answer, indices)
+            xwc = XWClue(coord, clue['clue'], indices)
             clues.append(xwc)
         solution = None
         if include_solution:
