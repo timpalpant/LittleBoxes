@@ -116,9 +116,12 @@ class ClueDB(object):
                 in descending order from most similar.
         '''
         clue = self._normalize_clue(clue)
-        # TODO(timpalpant): Get rid of this performance hack for exact matches.
-        if threshold == 1.0 and clue in self._clue_to_answers:
-            return {(clue, 1.0)}
+        # NOTE: Performance hack for when doing exact matches.
+        if threshold == 1.0:
+            if clue in self._clue_to_answers:
+                return {(clue, 1.0)}
+            else:
+                return {}
         return self._fuzzy_clueset.search(clue, threshold=threshold)
 
     def answers(self, clue, length=None):
