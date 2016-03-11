@@ -13,4 +13,4 @@ class DictionarySolver(Solver):
         self._dictionary = dictionary
 
     def solve(self, xword):
-        return [(xword, 1.0)]
+        yield (xword, 1.0)
