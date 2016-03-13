@@ -62,6 +62,8 @@ class ClueDB(object):
             except Exception:
                 cls.logger.exception("Invalid entry: %s", line.rstrip())
 
+        n_answers = sum(len(v) for v in db._clue_to_answers.itervalues())
+        cls.logger.debug('Loaded %d answers for %d clues', n_answers, len(db))
         return db
 
     @classmethod
@@ -80,6 +82,9 @@ class ClueDB(object):
         for clue, answers in unpacker:
             for answer in answers:
                 db.add(clue, answer)
+
+        n_answers = sum(len(v) for v in db._clue_to_answers.itervalues())
+        cls.logger.debug('Loaded %d answers for %d clues', n_answers, len(db))
         return db
 
     def serialize(self, file_object):

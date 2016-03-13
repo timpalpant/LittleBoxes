@@ -18,6 +18,7 @@ class Dictionary(object):
         Finding all words matching a certain pattern (faster than list)
         Finding all words of length matching pattern (MUCH faster than list)
     '''
+    logger = logging.getLogger('littleboxes.dictionary.Dictionary')
 
     def __init__(self, fast=True):
         '''Creates an empty Dictionary
@@ -31,7 +32,6 @@ class Dictionary(object):
 
         self.fast = fast
         self.binned_tries = {}
-        self.logger = logging.getLogger('Dictionary.logger')
         if self.fast:
             self.logger.debug('Created a FAST Dictionary')
 
@@ -44,8 +44,8 @@ class Dictionary(object):
         for line in istream:
             dictionary.add(line)
 
-        dictionary.logger.debug('Loaded %d words into %d nodes in %0.3f seconds',
-                                dictionary.size, dictionary.nodes, time.time() - start)
+        cls.logger.debug('Loaded %d words into %d nodes in %0.3f seconds',
+                         dictionary.size, dictionary.nodes, time.time() - start)
 
         return dictionary
 
@@ -135,6 +135,7 @@ class Trie(object):
 
     Reference: https://en.wikipedia.org/wiki/Trie
     '''
+    logger = logging.getLogger('littleboxes.dictionary.Trie')
 
     def __init__(self, fast=True):
         '''Creates a root node, empty master list of words, and initializes
@@ -147,7 +148,6 @@ class Trie(object):
         self.list_is_sorted = True
         self.size = 0
         self.node_count = 1
-        self.logger = logging.getLogger('Trie.logger')
         if self.fast:
             self.logger.debug('Created a FAST Trie')
 
@@ -336,3 +336,20 @@ class PhraseDictionary(object):
                     cur_idx += word_length
                 for phrase in itertools.product(*words):
                     yield phrase
+
+    def get_words(self, pattern, length):
+        for phrase in self.get(pattern, length):
+            yield ''.join(phrase)
+
+    def is_word(self, phrase):
+        # For all splits of the phrase into words.
+        for p in partitions(len(phrase)):
+            # For all permutations of those word lengths.
+            for perm in unique_permutations(p):
+                cur_idx = 0
+                for word_length in perm:
+                    word = phrase[cur_idx:cur_idx+word_length]
+                    if not self._dictionary.is_word(word):
+                        return False
+                    cur_idx += word_length
+        return False

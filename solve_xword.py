@@ -1,5 +1,6 @@
 import argparse
 import logging
+import logging.config
 import os
 
 from littleboxes.cluedb import ClueDB
@@ -8,27 +9,13 @@ from littleboxes.solver.solver import MultiStageSolver
 from littleboxes.solver.cluedb_solver import ClueDBCliqueSolver
 from littleboxes.solver.dictionary_solver import (
     DictionaryCliqueSolver,
-    DictionaryGuessSolver,
 )
-from littleboxes.xword import Crossword
+from littleboxes.xword import Crossword, pretty_print
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
 DICTIONARIES_DIR = os.path.join(DATA_DIR, 'dictionaries')
 CLUES_DIR = os.path.join(DATA_DIR, 'clues')
-
-
-def pretty_print(x):
-    for r in xrange(x.height):
-        row = []
-        for letter in x.solution[r * x.width:(r + 1) * x.width]:
-            if letter is None:
-                row.append('~')
-            elif letter == Crossword.black_square:
-                row.append('*')
-            else:
-                row.append(letter)
-        print ''.join(row)
 
 
 def opts():
@@ -43,16 +30,13 @@ def opts():
                         help='Clue database to use (default: %(default)s)')
     parser.add_argument('--nsolutions', type=int, default=1,
                         help='Number of solutions to show (default: %(default)s)')
-    parser.add_argument('--logging',
-                        choices=('debug', 'info', 'warning',
-                                 'error', 'critical'),
-                        default='info', help='Logging level (default: %(default)s)')
     return parser
 
 
 def main():
     args = opts().parse_args()
-    logging.basicConfig(level=getattr(logging, args.logging.upper()))
+    logging.config.fileConfig(os.path.join(ROOT_DIR, 'logging.ini'),
+                              disable_existing_loggers=False)
 
     logging.info("Loading crossword puzzle")
     x = Crossword.load(args.puzzle)
@@ -68,8 +52,8 @@ def main():
     logging.info("Solving puzzle")
     solver = MultiStageSolver(
         solvers=[
-            ClueDBCliqueSolver(db),
-            DictionaryGuessSolver(dictionary),
+            ClueDBCliqueSolver(db, 1.0),
+            DictionaryCliqueSolver(dictionary),
         ],
     )
 

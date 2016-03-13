@@ -14,7 +14,11 @@ class XWDirection(str, enum.Enum):
     DOWN = 'D'
 
 
-XWCoordinate = namedtuple('XWCoordinate', ['num', 'direction'])
+class XWCoordinate(namedtuple('XWCoordinate', ['num', 'direction'])):
+    def __str__(self):
+        return '%s-%s' % (self.num, self.direction.value)
+
+
 # Represents an individual clue in a Crossword puzzle:
 #    coord (XWCoordinate): The number and direction of this clue.
 #    text (str): The clue text.
@@ -22,7 +26,10 @@ XWCoordinate = namedtuple('XWCoordinate', ['num', 'direction'])
 #        that this clue references. Indices are linear, row-major order.
 #        For across clues, they should be sequential; for down clues
 #        they will be offset by the width of the Crossword.
-XWClue = namedtuple('XWClue', ['coord', 'text', 'box_indices'])
+class XWClue(namedtuple('XWClue', ['coord', 'text', 'box_indices'])):
+    def __str__(self):
+        return '%s: %s' % (self.coord, self.text)
+
 XWFill = namedtuple('XWFill', ['clue', 'word'])
 
 
@@ -43,6 +50,14 @@ class Crossword(object):
             self.solution = [None for _ in xrange(width * height)]
             self._fill_black_squares()
         self._validate()
+        self._box_to_across = [None] * len(self.solution)
+        self._box_to_down = [None] * len(self.solution)
+        for clue in self.clues:
+            for box in clue.box_indices:
+                if clue.coord.direction == XWDirection.ACROSS:
+                    self._box_to_across[box] = clue
+                else:
+                    self._box_to_down[box] = clue
 
     @property
     def n_set(self):
@@ -96,6 +111,21 @@ class Crossword(object):
             solution = list(p.solution)
         return cls(p.width, p.height, tuple(clues), solution)
 
+    def across(self, box_index):
+        '''Return the across clue that contains the given box.'''
+        return self._box_to_across[box_index]
+
+    def down(self, box_index):
+        '''Return the down clue that contains the given box.'''
+        return self._box_to_down[box_index]
+
+    def crossing(self, clue, box):
+        '''Return the clue that crosses @clue in @box.'''
+        if clue.coord.direction == XWDirection.ACROSS:
+            return self.down(box)
+        else:
+            return self.across(box)
+
     def get_fill(self, clue):
         '''Returns the current fill for the given clue.
         Unfilled squares are indicated by None.
@@ -145,3 +175,16 @@ class Crossword(object):
             if self.solution[idx] is not None and self.solution[idx] != letter:
                 return True
         return False
+
+
+def pretty_print(x):
+    for r in xrange(x.height):
+        row = []
+        for letter in x.solution[r * x.width:(r + 1) * x.width]:
+            if letter is None:
+                row.append('~')
+            elif letter == Crossword.black_square:
+                row.append('*')
+            else:
+                row.append(letter)
+        print ''.join(row)
