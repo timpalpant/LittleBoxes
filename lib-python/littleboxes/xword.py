@@ -132,6 +132,10 @@ class Crossword(object):
         for idx, letter in zip(clue.box_indices, answer):
             self.solution[idx] = letter
 
+    def erase_fill(self, clue):
+        for idx in clue.box_indices:
+            self.solution[idx] = None
+
     def would_conflict(self, clue, answer):
         '''Return whether or not the proposed answer for this clue conflicts
         with any letters that have already been filled.

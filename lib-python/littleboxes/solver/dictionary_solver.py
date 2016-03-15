@@ -1,8 +1,10 @@
 import logging
+import math
 from networkx import find_cliques
 import random
 
 from littleboxes.solver.clique import build_conflict_graph
+from littleboxes.solver.anneal_solver import SimulatedAnnealingSolver
 from littleboxes.solver.solver import Solver
 
 
@@ -77,3 +79,31 @@ class DictionaryGuessSolver(DictionarySolverBase):
 
         self.logger.info('Found solution')
         yield xword.n_set, xword
+
+
+class DictionaryAnnealSolver(DictionarySolverBase):
+    def __init__(self, dictionary, T_0=10.0, n_iter=10000):
+        """Args:
+            dictionary (Dictionary): Dictionary of words to use as potential fills.
+        """
+        self._dictionary = dictionary
+        self.T_0 = T_0
+        self.n_iter = n_iter
+
+    def solve(self, xword):
+        scorefxn = lambda xword: xword.n_set
+        moves = [self._assign_random_clue, self._erase_random_clue]
+        T_schedule = [self.T_0*math.exp(-0.01*i) for i in xrange(self.n_iter)]
+        subsolver = SimulatedAnnealingSolver(scorefxn, moves, T_schedule)
+        for score, solution in subsolver.solve(xword):
+            yield score, solution
+
+    def _assign_random_clue(self, xword):
+        possible_answers = self.query_answers(xword)
+        clue = random.choice(possible_answers.keys())
+        word = random.choice(possible_answers[clue])
+        xword.set_fill(clue, word)
+
+    def _erase_random_clue(self, xword):
+        clue = random.choice(xword.clues)
+        xword.erase_fill(clue)

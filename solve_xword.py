@@ -7,6 +7,7 @@ from littleboxes.dictionary import Dictionary, PhraseDictionary
 from littleboxes.solver.solver import MultiStageSolver
 from littleboxes.solver.cluedb_solver import ClueDBCliqueSolver
 from littleboxes.solver.dictionary_solver import (
+    DictionaryAnnealSolver,
     DictionaryCliqueSolver,
     DictionaryGuessSolver,
 )
@@ -69,7 +70,7 @@ def main():
     solver = MultiStageSolver(
         solvers=[
             ClueDBCliqueSolver(db),
-            DictionaryGuessSolver(dictionary),
+            DictionaryAnnealSolver(dictionary),
         ],
     )
 
