@@ -40,7 +40,7 @@ class Crossword(object):
         if solution is not None:
             self.solution = solution
         else:
-            self.solution = [None for _ in xrange(width * height)]
+            self.solution = [None for _ in range(width * height)]
             self._fill_black_squares()
         self._validate()
 
@@ -83,12 +83,12 @@ class Crossword(object):
         clues = []
         for clue in cn.across:
             coord = XWCoordinate(num=clue['num'], direction=XWDirection.ACROSS)
-            indices = tuple(clue['cell'] + i for i in xrange(clue['len']))
+            indices = tuple(clue['cell'] + i for i in range(clue['len']))
             xwc = XWClue(coord, clue['clue'], indices)
             clues.append(xwc)
         for clue in cn.down:
             coord = XWCoordinate(num=clue['num'], direction=XWDirection.DOWN)
-            indices = tuple(clue['cell'] + i * p.width for i in xrange(clue['len']))
+            indices = tuple(clue['cell'] + i * p.width for i in range(clue['len']))
             xwc = XWClue(coord, clue['clue'], indices)
             clues.append(xwc)
         solution = None

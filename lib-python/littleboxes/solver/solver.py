@@ -2,9 +2,8 @@ from abc import ABCMeta, abstractmethod
 import copy
 
 
-class Solver(object):
+class Solver(object, metaclass=ABCMeta):
     """Interface for a generic crossword solver."""
-    __metaclass__ = ABCMeta
 
     @abstractmethod
     def solve(self, xword):

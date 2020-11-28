@@ -329,7 +329,7 @@ class PhraseDictionary(object):
                 for word_length in perm:
                     # Find elements of the pattern that correspond to
                     # this window.
-                    pn = {k-cur_idx: v for k, v in pattern.iteritems()
+                    pn = {k-cur_idx: v for k, v in pattern.items()
                           if k >= cur_idx and k < cur_idx + word_length}
                     words.append(self._dictionary.get_words(
                         pattern=pn, length=word_length))

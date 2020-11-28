@@ -91,7 +91,7 @@ class ClueDB(object):
         Returns:
             Nothing
         """
-        for clue, answers in self._clue_to_answers.iteritems():
+        for clue, answers in self._clue_to_answers.items():
             msgpack.pack((clue, list(answers)), file_object)
 
     def add(self, clue, answer):

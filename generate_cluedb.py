@@ -36,7 +36,7 @@ def main():
         for puz in glob.iglob(pattern):
             logging.debug("Processing: %s", puz)
             try:
-                with open(puz) as fd:
+                with open(puz, 'rb') as fd:
                     x = Crossword.load(fd, include_solution=True)
                     for clue in x.clues:
                         word = ''.join(x.get_fill(clue))

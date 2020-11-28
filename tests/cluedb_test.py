@@ -5,7 +5,7 @@ Created on Feb 24, 2016
 '''
 import unittest
 import os
-from cStringIO import StringIO
+from io import StringIO
 import time
 
 from littleboxes.cluedb import ClueDB
@@ -25,14 +25,14 @@ class TestSerialization(unittest.TestCase):
         self.times = []
 
     def tearDown(self):
-        print 'Test: {0}'.format(self.testname)
+        print('Test: {0}'.format(self.testname))
         times = self.times
-        print 'Mean loading time {0} seconds'.format(sum(times)/len(times))
+        print('Mean loading time {0} seconds'.format(sum(times)/len(times)))
 
     @unittest.skipIf(not PERFORMANCE, 'Not running performance tests')
     def test_speed_load(self):
         self.testname = 'Loading'
-        for _ in xrange(self.repeat):
+        for _ in range(self.repeat):
             with open(self.TEST_DB, 'r') as db:
                 start = time.time()
                 test_db = ClueDB.load(db)
@@ -41,7 +41,7 @@ class TestSerialization(unittest.TestCase):
     @unittest.skipIf(not PERFORMANCE, 'Not running performance tests')
     def test_speed_msgpack(self):
         self.testname = 'MessagePack'
-        for _ in xrange(self.repeat):
+        for _ in range(self.repeat):
             with open(self.TEST_MPACK, 'r') as dbdump:
                 start = time.time()
                 test_db = ClueDB.deserialize(dbdump)

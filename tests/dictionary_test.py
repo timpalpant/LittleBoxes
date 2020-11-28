@@ -172,7 +172,7 @@ class TestDictionary(unittest.TestCase):
     def restrict(self, wordslist, pattern):
         '''Brute force restrict a list of words to match a pattern'''
 
-        for pos, letter in pattern.items():
+        for pos, letter in list(pattern.items()):
             nextlist = []
 
             for w in wordslist:

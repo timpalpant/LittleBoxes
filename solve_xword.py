@@ -19,7 +19,7 @@ CLUES_DIR = os.path.join(DATA_DIR, 'clues')
 
 
 def pretty_print(x):
-    for r in xrange(x.height):
+    for r in range(x.height):
         row = []
         for letter in x.solution[r * x.width:(r + 1) * x.width]:
             if letter is None:
@@ -28,7 +28,7 @@ def pretty_print(x):
                 row.append('*')
             else:
                 row.append(letter)
-        print ''.join(row)
+        print(''.join(row))
 
 
 def opts():

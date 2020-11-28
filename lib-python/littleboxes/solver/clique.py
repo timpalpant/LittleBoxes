@@ -17,7 +17,7 @@ def build_conflict_graph(xword, possible_answers):
     '''
     g = Graph()
 
-    for xwclue, wordset in possible_answers.iteritems():
+    for xwclue, wordset in possible_answers.items():
         for word in wordset:
             if not xword.would_conflict(xwclue, word):
                 g.add_node(XWFill(clue=xwclue, word=word))
